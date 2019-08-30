@@ -15,6 +15,22 @@ public final class UserSpec {
     private Long createdAt;
     private Long updatedAt;
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Long getCreatedAt() {
+        return createdAt;
+    }
+
+    public Long getUpdatedAt() {
+        return updatedAt;
+    }
+
     public static UserSpec fromJson(String userSpecJson) {
         UserSpec userSpec = null;
         try {
