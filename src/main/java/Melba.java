@@ -10,6 +10,7 @@ import specs.UserSpec;
 import views.UserView;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.Base64;
 
 import static spark.Spark.*;
 
@@ -19,6 +20,40 @@ public class Melba {
     private static Gson gson = new Gson();
     public static void main(String[] args) {
         port(config.getInt("app.port"));
+
+        // Authentication
+        before("/users/*", ((request, response) -> {
+            String authHeader = request.headers("Authorization");
+            if (authHeader != null){
+                String[] authHeaderDecomposed = authHeader.split(" ");
+
+                if (authHeaderDecomposed.length == 2 && authHeaderDecomposed[0].equals("Basic")) {
+                    String credentialsDecoded = null;
+                    try {
+                        credentialsDecoded = new String(Base64.getDecoder().decode(authHeaderDecomposed[1]));
+                    } catch (Exception e) {
+                        halt(401, "Invalid credentials base64");
+                    }
+
+                    String[] credentials = credentialsDecoded.split(":");
+
+                    if (credentials.length == 2) {
+                        String email = credentials[0];
+                        String password = credentials[1];
+
+                        boolean isAuthenticated = UserManagement.authenticate(email, password);
+
+                        if(!isAuthenticated)
+                            halt(401, "Invalid email/password");
+                    }
+                    else
+                        halt(401, "Invalid credentials structure");
+                } else
+                    halt(401, "Unsupported authorization schema");
+            } else
+                halt(401, "Missing authorization header");
+        }));
+
         get("/", (req, res) -> {
             res.type("application/json");
             return gson.toJson("It works!");

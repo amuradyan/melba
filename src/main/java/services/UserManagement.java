@@ -13,6 +13,26 @@ public final class UserManagement {
 
     private UserManagement() {}
 
+    public static boolean authenticate(String email, String password) {
+        boolean res = false;
+
+        try {
+            Connection conn = DataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement("select * from melba.users where email=? and pwd=?");
+            ps.setString(1, email);
+            ps.setString(2, password);
+
+            ResultSet users = ps.executeQuery();
+
+            if(users.next())
+                res = true;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+        }
+
+        return res;
+    }
+
     public static boolean userExists(String userId) {
         boolean res = false;
         try {
