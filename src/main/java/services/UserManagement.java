@@ -13,8 +13,8 @@ public final class UserManagement {
 
     private UserManagement() {}
 
-    public static boolean authenticate(String email, String password) {
-        boolean res = false;
+    public static UserEntity getUser(String email, String password) {
+        UserEntity res = null;
 
         try {
             Connection conn = DataSource.getConnection();
@@ -25,7 +25,11 @@ public final class UserManagement {
             ResultSet users = ps.executeQuery();
 
             if(users.next())
-                res = true;
+                res = new UserEntity(users.getString("uid"),
+                        users.getString("email"),
+                        users.getString("pwd"),
+                        users.getLong("createdAt"),
+                        users.getLong("updatedAt"));
         } catch (SQLException e) {
             logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
         }

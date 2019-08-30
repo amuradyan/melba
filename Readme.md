@@ -16,6 +16,5 @@ Due to lack of time this is not implemented. What I do in such cases id create a
 
 ## Missing functionality
 
-* Authentication
 * Notes RUD
 * Test

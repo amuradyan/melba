@@ -21,46 +21,12 @@ public class Melba {
     public static void main(String[] args) {
         port(config.getInt("app.port"));
 
-        // Authentication
-        before("/users/*", ((request, response) -> {
-            String authHeader = request.headers("Authorization");
-            if (authHeader != null){
-                String[] authHeaderDecomposed = authHeader.split(" ");
-
-                if (authHeaderDecomposed.length == 2 && authHeaderDecomposed[0].equals("Basic")) {
-                    String credentialsDecoded = null;
-                    try {
-                        credentialsDecoded = new String(Base64.getDecoder().decode(authHeaderDecomposed[1]));
-                    } catch (Exception e) {
-                        halt(401, "Invalid credentials base64");
-                    }
-
-                    String[] credentials = credentialsDecoded.split(":");
-
-                    if (credentials.length == 2) {
-                        String email = credentials[0];
-                        String password = credentials[1];
-
-                        boolean isAuthenticated = UserManagement.authenticate(email, password);
-
-                        if(!isAuthenticated)
-                            halt(401, "Invalid email/password");
-                    }
-                    else
-                        halt(401, "Invalid credentials structure");
-                } else
-                    halt(401, "Unsupported authorization schema");
-            } else
-                halt(401, "Missing authorization header");
-        }));
-
         get("/", (req, res) -> {
             res.type("application/json");
             return gson.toJson("It works!");
         });
 
         path("/users", () -> {
-            // User creation
             post("", (req, res) -> {
                 UserSpec userSpec = UserSpec.fromJson(req.body());
                 res.type("application/json");
@@ -88,33 +54,75 @@ public class Melba {
             });
 
             // Notes CRUD
-            path("/:user_id/notes", () -> {
-                get("", (req, res) -> "Fetched all notes for user " + req.params(":user_id"));
-                post("", (req, res) -> {
-                    res.type("application/json");
-                    String body = "";
-                    String userId = req.params(":user_id");
+            path("/:user_id", () -> {
+                // Auth
+                before("/*", (request, response) -> {
+                    String authHeader = request.headers("Authorization");
+                    String userId = request.params(":user_id");
+                    if (authHeader != null){
+                        String[] authHeaderDecomposed = authHeader.split(" ");
 
-                    if(UserManagement.userExists(userId)){
-                        NoteSpec noteSpec = NoteSpec.fromJson(req.body());
-                        if(noteSpec != null && noteSpec.isValid()) {
-                            NoteEntity noteEntity = NoteManagement.createNote(userId, noteSpec);
-                            body = gson.toJson(noteEntity);
-                        } else {
-                            res.status(400);
-                        }
-                    } else {
-                        res.status(404);
-                    }
+                        if (authHeaderDecomposed.length == 2 && authHeaderDecomposed[0].equals("Basic")) {
+                            String credentialsDecoded = null;
+                            try {
+                                credentialsDecoded = new String(Base64.getDecoder().decode(authHeaderDecomposed[1]));
+                            } catch (Exception e) {
+                                halt(401, "Invalid credentials base64");
+                            }
 
-                    return body;
+                            String[] credentials = credentialsDecoded.split(":");
+
+                            if (credentials.length == 2) {
+                                String email = credentials[0];
+                                String password = credentials[1];
+
+                                UserEntity userEntity = UserManagement.getUser(email, password);
+
+                                if(userEntity == null) {
+                                    halt(401, "Invalid email/password");
+                                }
+
+                                if (!userEntity.getId().equals(userId))
+                                    halt(401, "You can access only your resources");
+                            }
+                            else
+                                halt(401, "Invalid credentials structure");
+                        } else
+                            halt(401, "Unsupported authorization schema");
+                    } else
+                        halt(401, "Missing authorization header");
                 });
-                delete("", (req, res) -> "Deleted all notes for user " + req.params(":user_id"));
 
-                path("/:note_id", () -> {
-                    get("", (req, res) -> "Fetched note " + req.params(":note_id") + " for user " + req.params(":user_id"));
-                    delete("", (req, res) -> "Deleted note " + req.params(":note_id") + " for user " + req.params(":user_id"));
-                    patch("", (req, res) -> "Updated note " + req.params(":note_id") + " for user " + req.params(":user_id"));
+                path("/notes", () -> {
+                    get("", (req, res) -> "Fetched all notes for user " + req.params(":user_id"));
+
+                    post("", (req, res) -> {
+                        res.type("application/json");
+                        String body = "";
+                        String userId = req.params(":user_id");
+
+                        if(UserManagement.userExists(userId)){
+                            NoteSpec noteSpec = NoteSpec.fromJson(req.body());
+                            if(noteSpec != null && noteSpec.isValid()) {
+                                NoteEntity noteEntity = NoteManagement.createNote(userId, noteSpec);
+                                body = gson.toJson(noteEntity);
+                            } else {
+                                res.status(400);
+                            }
+                        } else {
+                            res.status(404);
+                        }
+
+                        return body;
+                    });
+
+                    delete("", (req, res) -> "Deleted all notes for user " + req.params(":user_id"));
+
+                    path("/:note_id", () -> {
+                        get("", (req, res) -> "Fetched note " + req.params(":note_id") + " for user " + req.params(":user_id"));
+                        delete("", (req, res) -> "Deleted note " + req.params(":note_id") + " for user " + req.params(":user_id"));
+                        patch("", (req, res) -> "Updated note " + req.params(":note_id") + " for user " + req.params(":user_id"));
+                    });
                 });
             });
         });

@@ -42,4 +42,16 @@ public class NoteManagement {
 
         return note;
     }
+
+    public static NoteEntity getNoteById(String noteId) {
+        return null;
+    }
+
+    public static boolean deleteNote(String noteId) {
+        return false;
+    }
+
+    public static NoteEntity updateNote(NoteSpec noteSpec) {
+        return null;
+    }
 }
