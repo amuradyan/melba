@@ -12,8 +12,10 @@ Due to lack of time this is not implemented. What I do in such cases id create a
 ## Present functionality
 
 * User creation
+* Note creation
 
 ## Missing functionality
 
 * Authentication
-* Notes CRUD
+* Notes RUD
+* Test

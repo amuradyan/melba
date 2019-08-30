@@ -1,6 +1,6 @@
 package entities;
 
-public class UserEntity {
+public final class UserEntity {
     private String id;
     private String email;
     private String password;

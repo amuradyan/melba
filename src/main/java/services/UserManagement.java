@@ -1,13 +1,9 @@
 package services;
 
 import entities.UserEntity;
-import models.User;
 import specs.UserSpec;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.*;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,10 +13,27 @@ public final class UserManagement {
 
     private UserManagement() {}
 
+    public static boolean userExists(String userId) {
+        boolean res = false;
+        try {
+            Connection conn = DataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement("select * from melba.users where uid=?");
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            res = rs.next();
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+        }
+        return res;
+    }
+
     public static UserEntity createUser(UserSpec userSpec) throws SQLIntegrityConstraintViolationException {
         UserEntity user = null;
         try {
             Connection conn = DataSource.getConnection();
+            Long createdAt = System.currentTimeMillis();
+            Long updatedAt = createdAt;
 
             String createUserQuery = "insert into melba.users values (?, ?, ?, ?, ?);";
             String uid = UUID.randomUUID().toString();
@@ -28,12 +41,12 @@ public final class UserManagement {
             createUser.setString(1, uid);
             createUser.setString(2, userSpec.getEmail());
             createUser.setString(3, userSpec.getPassword());
-            createUser.setLong(4, userSpec.getCreatedAt());
-            createUser.setLong(5, userSpec.getUpdatedAt());
+            createUser.setLong(4, createdAt); // createdAt
+            createUser.setLong(5, updatedAt);
             int res = createUser.executeUpdate();
 
             if(res > 0) {
-                user = new UserEntity(uid, userSpec.getEmail(), userSpec.getPassword(), userSpec.getCreatedAt(), userSpec.getUpdatedAt());
+                user = new UserEntity(uid, userSpec.getEmail(), userSpec.getPassword(), createdAt, updatedAt);
             }
         } catch (SQLIntegrityConstraintViolationException e) {
             logger.log(Level.SEVERE, e.getLocalizedMessage(), e);

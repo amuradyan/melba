@@ -1,8 +1,11 @@
 import com.google.gson.Gson;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import entities.NoteEntity;
 import entities.UserEntity;
+import services.NoteManagement;
 import services.UserManagement;
+import specs.NoteSpec;
 import specs.UserSpec;
 import views.UserView;
 
@@ -27,7 +30,7 @@ public class Melba {
                 UserSpec userSpec = UserSpec.fromJson(req.body());
                 res.type("application/json");
                 String body = "";
-                if(userSpec != null) {
+                if(userSpec != null && userSpec.isValid()) {
                     try {
                         UserEntity userEntity = UserManagement.createUser(userSpec);
 
@@ -40,7 +43,7 @@ public class Melba {
                         }
                     } catch (SQLIntegrityConstraintViolationException e) {
                         res.status(422);
-                        body = e.getLocalizedMessage();
+                        body = "Email must be unique. You are already registered.";
                     }
                 } else {
                     res.status(400);
@@ -52,7 +55,25 @@ public class Melba {
             // Notes CRUD
             path("/:user_id/notes", () -> {
                 get("", (req, res) -> "Fetched all notes for user " + req.params(":user_id"));
-                post("", (req, res) -> "Created a note for user " + req.params(":user_id"));
+                post("", (req, res) -> {
+                    res.type("application/json");
+                    String body = "";
+                    String userId = req.params(":user_id");
+
+                    if(UserManagement.userExists(userId)){
+                        NoteSpec noteSpec = NoteSpec.fromJson(req.body());
+                        if(noteSpec != null && noteSpec.isValid()) {
+                            NoteEntity noteEntity = NoteManagement.createNote(userId, noteSpec);
+                            body = gson.toJson(noteEntity);
+                        } else {
+                            res.status(400);
+                        }
+                    } else {
+                        res.status(404);
+                    }
+
+                    return body;
+                });
                 delete("", (req, res) -> "Deleted all notes for user " + req.params(":user_id"));
 
                 path("/:note_id", () -> {

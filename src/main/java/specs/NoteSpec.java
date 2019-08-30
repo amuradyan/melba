@@ -11,22 +11,29 @@ public final class NoteSpec {
 
     private String title;
     private String note;
-    private Long createdAt;
-    private Long updatedAt;
 
-    public static NoteSpec fromjson(String noteSpecJson) {
+    public String getTitle() {
+        return title;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public static NoteSpec fromJson(String noteSpecJson) {
         NoteSpec noteSpec = null;
+
         try {
             noteSpec = new Gson().fromJson(noteSpecJson, NoteSpec.class);
         } catch (JsonSyntaxException e) {
             logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
         }
+
         return noteSpec;
     }
 
     public boolean isValid() {
-        return !title.trim().isEmpty() && title.trim().length() <= 50 &&
-                note.length() <= 1000 &&
-                createdAt != null && updatedAt != null;
+        return title != null && !title.trim().isEmpty() && title.length() <= 50 &&
+                note != null && note.length() <= 1000;
     }
 }

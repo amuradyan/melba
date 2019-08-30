@@ -12,8 +12,6 @@ public final class UserSpec {
 
     private String email;
     private String password;
-    private Long createdAt;
-    private Long updatedAt;
 
     public String getEmail() {
         return email;
@@ -23,27 +21,20 @@ public final class UserSpec {
         return password;
     }
 
-    public Long getCreatedAt() {
-        return createdAt;
-    }
-
-    public Long getUpdatedAt() {
-        return updatedAt;
-    }
-
     public static UserSpec fromJson(String userSpecJson) {
         UserSpec userSpec = null;
+
         try {
             userSpec = new Gson().fromJson(userSpecJson, UserSpec.class);
         } catch (JsonSyntaxException e) {
             logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
         }
+
         return userSpec;
     }
 
     public boolean isValid() {
-        return EmailValidator.getInstance().isValid(email) &&
-                !password.trim().isEmpty() && password.trim().length() <= 8 &&
-                createdAt != null && updatedAt != null;
+        return email != null && EmailValidator.getInstance().isValid(email) &&
+                password != null && !password.trim().isEmpty() && password.trim().length() >= 8;
     }
 }
