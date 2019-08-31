@@ -1,14 +1,49 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
+    }
+}
+
 plugins {
     id 'java'
 }
 
+apply plugin: 'com.github.johnrengelman.shadow'
+
 group 'dekanat'
 version '1.0'
 
+sourceSets {
+    main {
+        java {
+            srcDirs 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+shadowJar {
+    baseName = 'melba'
+    version = 1.0
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+        resource = 'reference.conf'
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Melba'
+    }
 }
 
 dependencies {

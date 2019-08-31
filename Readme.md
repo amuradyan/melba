@@ -17,6 +17,15 @@ Due to lack of time this is not implemented. What I do in such cases id create a
 * Note CRUD
 
 
+# Build and deploy
+
+To build a "fat jar" do the following
+> ./gradlew shadowJar
+
+The line above will generate a jar in _build/libs_ named _melba-1.0-all.jar_. To deploy it do the following
+> java -jar melba-1.0-all.jar
+
+
 ## Missing functionality
 
 * Tests (REST and unit)
