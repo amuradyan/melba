@@ -11,6 +11,7 @@ import views.UserView;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Base64;
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -94,7 +95,18 @@ public class Melba {
         });
 
         path("/notes", () -> {
-          get("", (req, res) -> "Fetched all notes for user " + req.params(":user_id"));
+          get("", (req, res) -> {
+            res.type("application/json");
+            String body = "";
+            List<NoteEntity> notes = NoteManagement.getNotesByAuthor(req.params(":user_id"));
+
+            if (notes.size() == 0)
+              res.status(404);
+            else
+              body = gson.toJson(notes);
+
+            return body;
+          });
 
           post("", (req, res) -> {
             res.type("application/json");
@@ -116,7 +128,19 @@ public class Melba {
             return body;
           });
 
-          delete("", (req, res) -> "Deleted all notes for user " + req.params(":user_id"));
+          delete("", (req, res) -> {
+            res.type("application/json");
+
+            boolean resourceRemoved =
+                    NoteManagement.deleteNotesOf(req.params(":user_id"));
+
+            if (resourceRemoved)
+              res.status(200);
+            else
+              res.status(404);
+
+            return "";
+          });
 
           path("/:note_id", () -> {
             get("", (req, res) -> {
@@ -137,7 +161,7 @@ public class Melba {
               res.type("application/json");
 
               boolean resourceRemoved =
-                      NoteManagement.deleteNoteByAuthorAndNoteIds(req.params(":user_id"), req.params(":note_id"));
+                      NoteManagement.deleteNote(req.params(":user_id"), req.params(":note_id"));
 
               if (resourceRemoved)
                 res.status(200);

@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +47,32 @@ public class NoteManagement {
     return note;
   }
 
+  public static List<NoteEntity> getNotesByAuthor(String authorId) {
+    List<NoteEntity> notes = new ArrayList<>();
+
+    try {
+      Connection conn = DataSource.getConnection();
+      PreparedStatement ps = conn.prepareStatement("select * from melba.notes where uid=?;");
+      ps.setString(1, authorId);
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        NoteEntity note = new NoteEntity(rs.getString("nid"),
+                rs.getString("uid"),
+                rs.getString("title"),
+                rs.getString("note"),
+                rs.getLong("createdAt"),
+                rs.getLong("updatedAt"));
+
+        notes.add(note);
+      }
+    } catch (SQLException e) {
+      logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+    }
+
+    return notes;
+  }
+
   public static NoteEntity getNoteByAuthorAndNoteIds(String authorId, String noteId) {
     NoteEntity note = null;
 
@@ -69,7 +97,7 @@ public class NoteManagement {
     return note;
   }
 
-  public static boolean deleteNoteByAuthorAndNoteIds(String authorId, String noteId) {
+  public static boolean deleteNote(String authorId, String noteId) {
     boolean res = false;
 
     try {
@@ -87,28 +115,45 @@ public class NoteManagement {
     return res;
   }
 
+  public static boolean deleteNotesOf(String authorId) {
+    boolean res = false;
+
+    try {
+      Connection conn = DataSource.getConnection();
+      PreparedStatement ps = conn.prepareStatement("delete from melba.notes where uid=?;");
+      ps.setString(1, authorId);
+      int affectedRows = ps.executeUpdate();
+
+      res = affectedRows > 0;
+    } catch (SQLException e) {
+      logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+    }
+
+    return res;
+  }
+
   public static NoteEntity updateNote(String authorId, String noteId, NoteSpec noteSpec) {
-      NoteEntity note = null;
-      Long updatedAt = System.currentTimeMillis();
+    NoteEntity note = null;
+    Long updatedAt = System.currentTimeMillis();
 
-      try {
-          Connection conn = DataSource.getConnection();
-          PreparedStatement ps =
-                  conn.prepareStatement("update melba.notes set title=?, note=?, updatedAt=? where uid=? and nid=?");
-          ps.setString(1, noteSpec.getTitle());
-          ps.setString(2, noteSpec.getNote());
-          ps.setLong(3, updatedAt);
-          ps.setString(4, authorId);
-          ps.setString(5, noteId);
+    try {
+      Connection conn = DataSource.getConnection();
+      PreparedStatement ps =
+              conn.prepareStatement("update melba.notes set title=?, note=?, updatedAt=? where uid=? and nid=?");
+      ps.setString(1, noteSpec.getTitle());
+      ps.setString(2, noteSpec.getNote());
+      ps.setLong(3, updatedAt);
+      ps.setString(4, authorId);
+      ps.setString(5, noteId);
 
-          int rowsUpdated = ps.executeUpdate();
+      int rowsUpdated = ps.executeUpdate();
 
-          if(rowsUpdated > 0)
-              note = getNoteByAuthorAndNoteIds(authorId, noteId);
-      } catch (SQLException e) {
-          e.printStackTrace();
-      }
+      if (rowsUpdated > 0)
+        note = getNoteByAuthorAndNoteIds(authorId, noteId);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
 
-      return note;
+    return note;
   }
 }
