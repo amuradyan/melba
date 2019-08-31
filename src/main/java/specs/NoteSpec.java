@@ -2,23 +2,13 @@ package specs;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import models.Note;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class NoteSpec {
+public final class NoteSpec extends Note {
   private static final Logger logger = Logger.getLogger(NoteSpec.class.getName());
-
-  private String title;
-  private String note;
-
-  public String getTitle() {
-    return title;
-  }
-
-  public String getNote() {
-    return note;
-  }
 
   public static NoteSpec fromJson(String noteSpecJson) {
     NoteSpec noteSpec = null;
