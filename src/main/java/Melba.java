@@ -101,16 +101,16 @@ public class Melba {
             String body = "";
             String userId = req.params(":user_id");
 
-            if (UserManagement.userExists(userId)) {
-              NoteSpec noteSpec = NoteSpec.fromJson(req.body());
-              if (noteSpec != null && noteSpec.isValid()) {
-                NoteEntity noteEntity = NoteManagement.createNote(userId, noteSpec);
+            NoteSpec noteSpec = NoteSpec.fromJson(req.body());
+            if (noteSpec != null && noteSpec.isValid()) {
+              NoteEntity noteEntity = NoteManagement.createNote(userId, noteSpec);
+
+              if (noteEntity != null)
                 body = gson.toJson(noteEntity);
-              } else {
-                res.status(400);
-              }
+              else
+                res.status(500);
             } else {
-              res.status(404);
+              res.status(400);
             }
 
             return body;
@@ -127,10 +127,8 @@ public class Melba {
 
               if (note == null)
                 res.status(404);
-              else {
-                res.status(200);
+              else
                 body = gson.toJson(note, NoteEntity.class);
-              }
 
               return body;
             });
@@ -149,7 +147,24 @@ public class Melba {
               return "";
             });
 
-            patch("", (req, res) -> "Updated note " + req.params(":note_id") + " for user " + req.params(":user_id"));
+            patch("", (req, res) -> {
+              res.type("application/json");
+              String body = "";
+
+              NoteSpec noteSpec = NoteSpec.fromJson(req.body());
+              if (noteSpec != null && noteSpec.isValid()) {
+                NoteEntity updatedNote =
+                        NoteManagement.updateNote(req.params(":user_id"), req.params(":note_id"), noteSpec);
+                if (updatedNote != null)
+                  body = gson.toJson(updatedNote);
+                else
+                  res.status(500);
+              } else {
+                res.status(400);
+              }
+
+              return body;
+            });
           });
         });
       });

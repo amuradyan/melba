@@ -87,7 +87,28 @@ public class NoteManagement {
     return res;
   }
 
-  public static NoteEntity updateNote(String noteId, NoteSpec noteSpec) {
-    return null;
+  public static NoteEntity updateNote(String authorId, String noteId, NoteSpec noteSpec) {
+      NoteEntity note = null;
+      Long updatedAt = System.currentTimeMillis();
+
+      try {
+          Connection conn = DataSource.getConnection();
+          PreparedStatement ps =
+                  conn.prepareStatement("update melba.notes set title=?, note=?, updatedAt=? where uid=? and nid=?");
+          ps.setString(1, noteSpec.getTitle());
+          ps.setString(2, noteSpec.getNote());
+          ps.setLong(3, updatedAt);
+          ps.setString(4, authorId);
+          ps.setString(5, noteId);
+
+          int rowsUpdated = ps.executeUpdate();
+
+          if(rowsUpdated > 0)
+              note = getNoteByAuthorAndNoteIds(authorId, noteId);
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+
+      return note;
   }
 }
