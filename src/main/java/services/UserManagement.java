@@ -16,8 +16,7 @@ public final class UserManagement {
     public static UserEntity getUser(String email, String password) {
         UserEntity res = null;
 
-        try {
-            Connection conn = DataSource.getConnection();
+        try (Connection conn = DataSource.getConnection()){
             PreparedStatement ps = conn.prepareStatement("select * from melba.users where email=? and pwd=?");
             ps.setString(1, email);
             ps.setString(2, password);
@@ -39,8 +38,7 @@ public final class UserManagement {
 
     public static UserEntity createUser(UserSpec userSpec) throws SQLIntegrityConstraintViolationException {
         UserEntity user = null;
-        try {
-            Connection conn = DataSource.getConnection();
+        try (Connection conn = DataSource.getConnection()) {
             Long createdAt = System.currentTimeMillis();
             Long updatedAt = createdAt;
 

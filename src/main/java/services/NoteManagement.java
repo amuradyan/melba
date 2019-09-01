@@ -21,8 +21,7 @@ public class NoteManagement {
 
   public static NoteEntity createNote(String authorId, NoteSpec noteSpec) {
     NoteEntity note = null;
-    try {
-      Connection conn = DataSource.getConnection();
+    try (Connection conn = DataSource.getConnection()) {
       String noteId = UUID.randomUUID().toString();
       Long createdAt = System.currentTimeMillis();
       Long updatedAt = createdAt;
@@ -50,8 +49,7 @@ public class NoteManagement {
   public static List<NoteEntity> getNotesByAuthor(String authorId) {
     List<NoteEntity> notes = new ArrayList<>();
 
-    try {
-      Connection conn = DataSource.getConnection();
+    try (Connection conn = DataSource.getConnection()) {
       PreparedStatement ps = conn.prepareStatement("select * from melba.notes where uid=?;");
       ps.setString(1, authorId);
       ResultSet rs = ps.executeQuery();
@@ -76,8 +74,7 @@ public class NoteManagement {
   public static NoteEntity getNoteByAuthorAndNoteIds(String authorId, String noteId) {
     NoteEntity note = null;
 
-    try {
-      Connection conn = DataSource.getConnection();
+    try(Connection conn = DataSource.getConnection()) {
       PreparedStatement ps = conn.prepareStatement("select * from melba.notes where uid=? and nid=?;");
       ps.setString(1, authorId);
       ps.setString(2, noteId);
@@ -100,8 +97,7 @@ public class NoteManagement {
   public static boolean deleteNote(String authorId, String noteId) {
     boolean res = false;
 
-    try {
-      Connection conn = DataSource.getConnection();
+    try (Connection conn = DataSource.getConnection()) {
       PreparedStatement ps = conn.prepareStatement("delete from melba.notes where uid=? and nid=?;");
       ps.setString(1, authorId);
       ps.setString(2, noteId);
@@ -118,8 +114,7 @@ public class NoteManagement {
   public static boolean deleteNotesOf(String authorId) {
     boolean res = false;
 
-    try {
-      Connection conn = DataSource.getConnection();
+    try(Connection conn = DataSource.getConnection()) {
       PreparedStatement ps = conn.prepareStatement("delete from melba.notes where uid=?;");
       ps.setString(1, authorId);
       int affectedRows = ps.executeUpdate();
@@ -136,8 +131,7 @@ public class NoteManagement {
     NoteEntity note = null;
     Long updatedAt = System.currentTimeMillis();
 
-    try {
-      Connection conn = DataSource.getConnection();
+    try(Connection conn = DataSource.getConnection()) {
       PreparedStatement ps =
               conn.prepareStatement("update melba.notes set title=?, note=?, updatedAt=? where uid=? and nid=?");
       ps.setString(1, noteSpec.getTitle());

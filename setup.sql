@@ -18,3 +18,12 @@ create table if not exists notes(
     primary key (nid),
     foreign key (uid) references users(uid)
 );
+
+drop table users;
+drop table notes;
+
+select * from melba.users;
+delete from melba.users;
+
+select * from melba.notes;
+delete from melba.notes;

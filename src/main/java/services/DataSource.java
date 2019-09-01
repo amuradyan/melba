@@ -18,7 +18,7 @@ public final class DataSource {
 
   static {
     try {
-      String jdbcUrl = String.format("jdbc:mysql://%s/%s", config.getString("db.host"), config.getString("db.db"));
+      String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", config.getString("db.host"), config.getString("db.port"), config.getString("db.db"));
       cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
       cpds.setJdbcUrl(jdbcUrl);
       cpds.setPassword(config.getString("db.password"));

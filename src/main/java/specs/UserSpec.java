@@ -11,13 +11,14 @@ import java.util.logging.Logger;
 public final class UserSpec extends User {
   private static final Logger logger = Logger.getLogger(UserSpec.class.getName());
 
-  public static UserSpec fromJson(String userSpecJson) {
+  public static UserSpec fromJson(String userSpecJson) throws JsonSyntaxException {
     UserSpec userSpec = null;
 
     try {
       userSpec = new Gson().fromJson(userSpecJson, UserSpec.class);
     } catch (JsonSyntaxException e) {
       logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+      throw e;
     }
 
     return userSpec;

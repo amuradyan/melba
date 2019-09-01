@@ -1,4 +1,5 @@
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import entities.NoteEntity;
@@ -30,25 +31,30 @@ public class Melba {
 
     path("/users", () -> {
       post("", (req, res) -> {
-        UserSpec userSpec = UserSpec.fromJson(req.body());
         res.type("application/json");
         String body = "";
-        if (userSpec != null && userSpec.isValid()) {
-          try {
-            UserEntity userEntity = UserManagement.createUser(userSpec);
+        try {
+          UserSpec userSpec = UserSpec.fromJson(req.body());
 
-            if (userEntity != null) {
-              res.status(201);
-              body = gson.toJson(UserView.fromEntity(userEntity));
-            } else {
-              res.status(500);
-              body = "Unable to create a user";
+          if (userSpec != null && userSpec.isValid()) {
+            try {
+              UserEntity userEntity = UserManagement.createUser(userSpec);
+
+              if (userEntity != null) {
+                res.status(201);
+                body = gson.toJson(UserView.fromEntity(userEntity));
+              } else {
+                res.status(500);
+                body = "Unable to create a user";
+              }
+            } catch (SQLIntegrityConstraintViolationException e) {
+              res.status(422);
+              body = "Email must be unique. You are already registered.";
             }
-          } catch (SQLIntegrityConstraintViolationException e) {
+          } else {
             res.status(422);
-            body = "Email must be unique. You are already registered.";
           }
-        } else {
+        } catch (JsonSyntaxException e) {
           res.status(400);
         }
 
