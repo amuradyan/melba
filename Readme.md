@@ -17,6 +17,7 @@ The line above will generate a jar in _build/libs_ named _melba-1.0-all.jar_. To
 
 * User creation
 * Note CRUD
+* User management REST API tests 
 
 ## Missing functionality
 
